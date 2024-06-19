@@ -3,9 +3,12 @@ package xyz.justsoft.video_thumbnail;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
+import android.media.ThumbnailUtils;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.util.Size;
 
 import androidx.annotation.NonNull;
 
@@ -200,37 +203,53 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
      */
     public Bitmap createVideoThumbnail(final String video, final HashMap<String, String> headers, int targetH, int targetW, int timeMs) {
         Bitmap bitmap = null;
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        try {
-            if (video.startsWith("/")) {
-                setDataSource(video, retriever);
-            } else if (video.startsWith("file://")) {
-                setDataSource(video.substring(7), retriever);
-            } else {
-                retriever.setDataSource(video, (headers != null) ? headers : new HashMap<String, String>());
-            }
+        MediaMetadataRetriever retriever = null;
 
-            if (targetH != 0 || targetW != 0) {
-                if (android.os.Build.VERSION.SDK_INT >= 27 && targetH != 0 && targetW != 0) {
-                    // API Level 27
-                    bitmap = retriever.getScaledFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST, targetW, targetH);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("/")) {
+                if (targetW == 0 && targetH == 0){
+                    targetW = 640;
+                    targetH = 480;
+                }
+                bitmap = ThumbnailUtils.createVideoThumbnail(new File(video), new Size(targetW, targetH), null);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("file://")) {
+                if (targetW == 0 && targetH == 0){
+                    targetW = 640;
+                    targetH = 480;
+                }
+                bitmap = ThumbnailUtils.createVideoThumbnail(new File(video.substring(7)), new Size(targetW, targetH), null);
+            } else {
+                retriever = new MediaMetadataRetriever();
+                if (video.startsWith("/")) {
+                    setDataSource(video, retriever);
+                } else if (video.startsWith("file://")) {
+                    setDataSource(video.substring(7), retriever);
+                } else {
+                    retriever.setDataSource(video, (headers != null) ? headers : new HashMap<String, String>());
+                }
+
+                if (targetH != 0 || targetW != 0) {
+                    if (Build.VERSION.SDK_INT >= 27 && targetH != 0 && targetW != 0) {
+                        // API Level 27
+                        bitmap = retriever.getScaledFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST, targetW, targetH);
+                    } else {
+                        bitmap = retriever.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
+                        if (bitmap != null) {
+                            int width = bitmap.getWidth();
+                            int height = bitmap.getHeight();
+                            if (targetW == 0) {
+                                targetW = Math.round(((float) targetH / height) * width);
+                            }
+                            if (targetH == 0) {
+                                targetH = Math.round(((float) targetW / width) * height);
+                            }
+                            Log.d(TAG, String.format("original w:%d, h:%d => %d, %d", width, height, targetW, targetH));
+                            bitmap = Bitmap.createScaledBitmap(bitmap, targetW, targetH, true);
+                        }
+                    }
                 } else {
                     bitmap = retriever.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
-                    if (bitmap != null) {
-                        int width = bitmap.getWidth();
-                        int height = bitmap.getHeight();
-                        if (targetW == 0) {
-                            targetW = Math.round(((float) targetH / height) * width);
-                        }
-                        if (targetH == 0) {
-                            targetH = Math.round(((float) targetW / width) * height);
-                        }
-                        Log.d(TAG, String.format("original w:%d, h:%d => %d, %d", width, height, targetW, targetH));
-                        bitmap = Bitmap.createScaledBitmap(bitmap, targetW, targetH, true);
-                    }
                 }
-            } else {
-                bitmap = retriever.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
             }
         } catch (IllegalArgumentException ex) {
             ex.printStackTrace();
@@ -240,7 +259,9 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
             ex.printStackTrace();
         } finally {
             try {
-                retriever.release();
+                if (retriever != null) {
+                    retriever.release();
+                }
             } catch (RuntimeException | IOException ex) {
                 ex.printStackTrace();
             }
