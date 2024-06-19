@@ -103,7 +103,11 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
       'quality': quality
     };
 
-    await methodChannel.invokeMethod('file', reqMap);
+    final result = await methodChannel.invokeMethod('file', reqMap);
+
+    if (result != true) {
+      _resolveFuture(callId, result);
+    }
 
     return completer.future;
   }
@@ -131,7 +135,11 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
       'quality': quality,
     };
 
-    await methodChannel.invokeMethod('data', reqMap);
+    final result = await methodChannel.invokeMethod('data', reqMap);
+
+    if (result != true) {
+      _resolveFuture(callId, result);
+    }
 
     return completer.future;
   }
