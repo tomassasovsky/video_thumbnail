@@ -57,6 +57,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
     public void onMethodCall(@NonNull MethodCall call, @NonNull final Result result) {
         final Map<String, Object> args = call.arguments();
 
+        final int callId = (int) args.get("callId");
         final String video = (String) args.get("video");
         final HashMap<String, String> headers = (HashMap<String, String>) args.get("headers");
         final int format = (int) args.get("format");
@@ -69,25 +70,29 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                Object thumbnail = null;
-                boolean handled = false;
-                Exception exc = null;
 
                 try {
                     if (method.equals("file")) {
                         final String path = (String) args.get("path");
-                        thumbnail = buildThumbnailFile(video, headers, path, format, maxh, maxw, timeMs, quality);
-                        handled = true;
+                        result.success(true);
+
+                        Object thumbnail = buildThumbnailFile(video, headers, path, format, maxh, maxw, timeMs, quality);
+
+                        onResult("result#file", callId, thumbnail);
 
                     } else if (method.equals("data")) {
-                        thumbnail = buildThumbnailData(video, headers, format, maxh, maxw, timeMs, quality);
-                        handled = true;
+                        result.success(true);
+
+                        Object thumbnail = buildThumbnailData(video, headers, format, maxh, maxw, timeMs, quality);
+
+                        onResult("result#data", callId, thumbnail);
+                    } else {
+                        result.notImplemented();
                     }
                 } catch (Exception e) {
-                    exc = e;
+                    onResult("result#error", callId, e.toString());
                 }
 
-                onResult(result, thumbnail, handled, exc);
             }
         });
     }
@@ -116,13 +121,11 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         }
     }
 
-    private byte[] buildThumbnailData(final String vidPath, final HashMap<String, String> headers, int format, int maxh,
-            int maxw, int timeMs, int quality) {
+    private byte[] buildThumbnailData(final String vidPath, final HashMap<String, String> headers, int format, int maxh, int maxw, int timeMs, int quality) {
         // Log.d(TAG, String.format("buildThumbnailData( format:%d, maxh:%d, maxw:%d,
         // timeMs:%d, quality:%d )", format, maxh, maxw, timeMs, quality));
         Bitmap bitmap = createVideoThumbnail(vidPath, headers, maxh, maxw, timeMs);
-        if (bitmap == null)
-            throw new NullPointerException();
+        if (bitmap == null) throw new NullPointerException();
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(intToFormat(format), quality, stream);
@@ -130,9 +133,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         return stream.toByteArray();
     }
 
-    private String buildThumbnailFile(final String vidPath, final HashMap<String, String> headers, String path,
-            int format, int maxh, int maxw, int timeMs,
-            int quality) {
+    private String buildThumbnailFile(final String vidPath, final HashMap<String, String> headers, String path, int format, int maxh, int maxw, int timeMs, int quality) {
         // Log.d(TAG, String.format("buildThumbnailFile( format:%d, maxh:%d, maxw:%d,
         // timeMs:%d, quality:%d )", format, maxh, maxw, timeMs, quality));
         final byte bytes[] = buildThumbnailData(vidPath, headers, format, maxh, maxw, timeMs, quality);
@@ -172,22 +173,15 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         return fullpath;
     }
 
-    private void onResult(final Result result, final Object thumbnail, final boolean handled, final Exception e) {
+    private void onResult(final String methodName, final int callId, final Object result) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (!handled) {
-                    result.notImplemented();
-                    return;
-                }
+                Map<String, Object> resultMap = new HashMap<>();
+                resultMap.put("callId", callId);
+                resultMap.put("result", result);
 
-                if (e != null) {
-                    e.printStackTrace();
-                    result.error("exception", e.getMessage(), null);
-                    return;
-                }
-
-                result.success(thumbnail);
+                channel.invokeMethod(methodName, resultMap);
             }
         });
     }
@@ -204,8 +198,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
      * @param targetH the max height of the thumbnail
      * @param targetW the max width of the thumbnail
      */
-    public Bitmap createVideoThumbnail(final String video, final HashMap<String, String> headers, int targetH,
-            int targetW, int timeMs) {
+    public Bitmap createVideoThumbnail(final String video, final HashMap<String, String> headers, int targetH, int targetW, int timeMs) {
         Bitmap bitmap = null;
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         try {
@@ -220,8 +213,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
             if (targetH != 0 || targetW != 0) {
                 if (android.os.Build.VERSION.SDK_INT >= 27 && targetH != 0 && targetW != 0) {
                     // API Level 27
-                    bitmap = retriever.getScaledFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST,
-                            targetW, targetH);
+                    bitmap = retriever.getScaledFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST, targetW, targetH);
                 } else {
                     bitmap = retriever.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
                     if (bitmap != null) {
