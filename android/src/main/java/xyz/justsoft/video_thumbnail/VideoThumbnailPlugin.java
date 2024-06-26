@@ -93,7 +93,11 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
                         result.notImplemented();
                     }
                 } catch (Exception e) {
-                    onResult("result#error", callId, e.toString());
+                    try {
+                        onResult("result#error", callId, Log.getStackTraceString(e));
+                    } catch (Exception e2) {
+                        onResult("result#error", callId, e.toString());
+                    }
                 }
 
             }
@@ -124,7 +128,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         }
     }
 
-    private byte[] buildThumbnailData(final String vidPath, final HashMap<String, String> headers, int format, int maxh, int maxw, int timeMs, int quality) {
+    private byte[] buildThumbnailData(final String vidPath, final HashMap<String, String> headers, int format, int maxh, int maxw, int timeMs, int quality) throws IOException {
         // Log.d(TAG, String.format("buildThumbnailData( format:%d, maxh:%d, maxw:%d,
         // timeMs:%d, quality:%d )", format, maxh, maxw, timeMs, quality));
         Bitmap bitmap = createVideoThumbnail(vidPath, headers, maxh, maxw, timeMs);
@@ -136,7 +140,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         return stream.toByteArray();
     }
 
-    private String buildThumbnailFile(final String vidPath, final HashMap<String, String> headers, String path, int format, int maxh, int maxw, int timeMs, int quality) {
+    private String buildThumbnailFile(final String vidPath, final HashMap<String, String> headers, String path, int format, int maxh, int maxw, int timeMs, int quality) throws IOException {
         // Log.d(TAG, String.format("buildThumbnailFile( format:%d, maxh:%d, maxw:%d,
         // timeMs:%d, quality:%d )", format, maxh, maxw, timeMs, quality));
         final byte bytes[] = buildThumbnailData(vidPath, headers, format, maxh, maxw, timeMs, quality);
@@ -201,19 +205,19 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
      * @param targetH the max height of the thumbnail
      * @param targetW the max width of the thumbnail
      */
-    public Bitmap createVideoThumbnail(final String video, final HashMap<String, String> headers, int targetH, int targetW, int timeMs) {
+    public Bitmap createVideoThumbnail(final String video, final HashMap<String, String> headers, int targetH, int targetW, int timeMs) throws IOException {
         Bitmap bitmap = null;
         MediaMetadataRetriever retriever = null;
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("/")) {
-                if (targetW == 0 && targetH == 0){
+                if (targetW == 0 && targetH == 0) {
                     targetW = 640;
                     targetH = 480;
                 }
                 bitmap = ThumbnailUtils.createVideoThumbnail(new File(video), new Size(targetW, targetH), null);
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("file://")) {
-                if (targetW == 0 && targetH == 0){
+                if (targetW == 0 && targetH == 0) {
                     targetW = 640;
                     targetH = 480;
                 }
@@ -251,19 +255,13 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
                     bitmap = retriever.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
                 }
             }
-        } catch (IllegalArgumentException ex) {
-            ex.printStackTrace();
-        } catch (RuntimeException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
         } finally {
             try {
                 if (retriever != null) {
                     retriever.release();
                 }
             } catch (RuntimeException | IOException ex) {
-                ex.printStackTrace();
+                throw ex;
             }
         }
 
