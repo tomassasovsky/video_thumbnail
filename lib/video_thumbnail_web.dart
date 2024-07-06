@@ -41,6 +41,41 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
   }
 
   @override
+  Future<List<XFile>> thumbnailFiles({
+    required List<String> videos,
+    required Map<String, String>? headers,
+    required String? thumbnailPath,
+    required ImageFormat imageFormat,
+    required int maxHeight,
+    required int maxWidth,
+    required int timeMs,
+    required int quality,
+  }) async {
+    final blobs = <Blob>[];
+
+    for (final video in videos) {
+      blobs.add(
+        await _createThumbnail(
+          videoSrc: video,
+          headers: headers,
+          imageFormat: imageFormat,
+          maxHeight: maxHeight,
+          maxWidth: maxWidth,
+          timeMs: timeMs,
+          quality: quality,
+        ),
+      );
+    }
+
+    return blobs
+        .map(
+          (blob) =>
+              XFile(Url.createObjectUrlFromBlob(blob), mimeType: blob.type),
+        )
+        .toList();
+  }
+
+  @override
   Future<XFile> thumbnailFile({
     required String video,
     required Map<String, String>? headers,

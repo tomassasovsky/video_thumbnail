@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:cross_file/cross_file.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:get_thumbnail_video/src/image_format.dart';
 import 'package:get_thumbnail_video/src/video_thumbnail_method_channel.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 abstract class VideoThumbnailPlatform extends PlatformInterface {
   /// Constructs a VideoThumbnailPlatform.
@@ -24,6 +24,19 @@ abstract class VideoThumbnailPlatform extends PlatformInterface {
   static set instance(VideoThumbnailPlatform instance) {
     PlatformInterface.verifyToken(instance, _token);
     _instance = instance;
+  }
+
+  Future<List<XFile>> thumbnailFiles({
+    required List<String> videos,
+    required Map<String, String>? headers,
+    required String? thumbnailPath,
+    required ImageFormat imageFormat,
+    required int maxHeight,
+    required int maxWidth,
+    required int timeMs,
+    required int quality,
+  }) {
+    throw UnimplementedError('thumbnailFiles() has not been implemented.');
   }
 
   Future<XFile> thumbnailFile({

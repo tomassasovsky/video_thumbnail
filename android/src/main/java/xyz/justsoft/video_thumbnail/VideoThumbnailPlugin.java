@@ -19,7 +19,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,8 +61,99 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull final Result result) {
+        final String method = call.method;
         final Map<String, Object> args = call.arguments();
+        final int callId = (int) args.get("callId");
 
+        switch (method) {
+            case "files":
+                result.success(true);
+
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            processFiles(args, result);
+                        } catch (Exception e) {
+                            try {
+                                onResult("result#error", callId, Log.getStackTraceString(e));
+                            } catch (Exception e2) {
+                                onResult("result#error", callId, e.toString());
+                            }
+                        }
+
+                    }
+                });
+                break;
+            case "file":
+                result.success(true);
+
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            processFile(args, result);
+                        } catch (Exception e) {
+                            try {
+                                onResult("result#error", callId, Log.getStackTraceString(e));
+                            } catch (Exception e2) {
+                                onResult("result#error", callId, e.toString());
+                            }
+                        }
+
+                    }
+                });
+                break;
+            case "data":
+                result.success(true);
+
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            processData(args, result);
+                        } catch (Exception e) {
+                            try {
+                                onResult("result#error", callId, Log.getStackTraceString(e));
+                            } catch (Exception e2) {
+                                onResult("result#error", callId, e.toString());
+                            }
+                        }
+
+                    }
+                });
+                break;
+            default:
+                result.notImplemented();
+                break;
+        }
+    }
+
+    private void processFiles(final Map<String, Object> args, final Result result) {
+        final int callId = (int) args.get("callId");
+        final List<String> videos = (List<String>) args.get("videos");
+        final HashMap<String, String> headers = (HashMap<String, String>) args.get("headers");
+        final int format = (int) args.get("format");
+        final int maxh = (int) args.get("maxh");
+        final int maxw = (int) args.get("maxw");
+        final int timeMs = (int) args.get("timeMs");
+        final int quality = (int) args.get("quality");
+        final String path = (String) args.get("path");
+
+        final List<Object> results = new LinkedList<Object>();
+
+        for (final String video: videos){
+            try {
+                results.add(buildThumbnailFile(video, headers, path, format, maxh, maxw, timeMs, quality));
+            } catch (IOException e) {
+                continue;
+            }
+        }
+
+        onResult("result#files", callId, results);
+    }
+
+    private void processFile(final Map<String, Object> args, final Result result) throws IOException {
         final int callId = (int) args.get("callId");
         final String video = (String) args.get("video");
         final HashMap<String, String> headers = (HashMap<String, String>) args.get("headers");
@@ -68,40 +162,26 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         final int maxw = (int) args.get("maxw");
         final int timeMs = (int) args.get("timeMs");
         final int quality = (int) args.get("quality");
-        final String method = call.method;
+        final String path = (String) args.get("path");
 
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
+        Object thumbnail = buildThumbnailFile(video, headers, path, format, maxh, maxw, timeMs, quality);
 
-                try {
-                    if (method.equals("file")) {
-                        final String path = (String) args.get("path");
-                        result.success(true);
+        onResult("result#file", callId, thumbnail);
+    }
 
-                        Object thumbnail = buildThumbnailFile(video, headers, path, format, maxh, maxw, timeMs, quality);
+    private void processData(final Map<String, Object> args, final Result result) throws IOException {
+        final int callId = (int) args.get("callId");
+        final String video = (String) args.get("video");
+        final HashMap<String, String> headers = (HashMap<String, String>) args.get("headers");
+        final int format = (int) args.get("format");
+        final int maxh = (int) args.get("maxh");
+        final int maxw = (int) args.get("maxw");
+        final int timeMs = (int) args.get("timeMs");
+        final int quality = (int) args.get("quality");
 
-                        onResult("result#file", callId, thumbnail);
+        Object thumbnail = buildThumbnailData(video, headers, format, maxh, maxw, timeMs, quality);
 
-                    } else if (method.equals("data")) {
-                        result.success(true);
-
-                        Object thumbnail = buildThumbnailData(video, headers, format, maxh, maxw, timeMs, quality);
-
-                        onResult("result#data", callId, thumbnail);
-                    } else {
-                        result.notImplemented();
-                    }
-                } catch (Exception e) {
-                    try {
-                        onResult("result#error", callId, Log.getStackTraceString(e));
-                    } catch (Exception e2) {
-                        onResult("result#error", callId, e.toString());
-                    }
-                }
-
-            }
-        });
+        onResult("result#data", callId, thumbnail);
     }
 
     private static Bitmap.CompressFormat intToFormat(int format) {

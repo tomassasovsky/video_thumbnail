@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get_thumbnail_video/src/image_format.dart';
 import 'package:get_thumbnail_video/src/video_thumbnail_platform.dart';
@@ -19,6 +20,10 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
 
   Future<dynamic> _resolveCall(MethodCall call) async {
     switch (call.method) {
+      case 'result#files':
+        _resolveFilesCall(call);
+        return;
+
       case 'result#file':
         _resolveFileCall(call);
         return;
@@ -37,6 +42,13 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
           details: 'Unknown method ${call.method}',
         );
     }
+  }
+
+  void _resolveFilesCall(MethodCall call) {
+    final List<String> result = call.arguments['result']?.cast<String>() ?? [];
+    final int callId = call.arguments['callId'];
+
+    _resolveFuture(callId, result.map(XFile.new).toList());
   }
 
   void _resolveFileCall(MethodCall call) {
@@ -76,6 +88,61 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
     _futures[callId] = completer;
 
     return (completer, callId);
+  }
+
+  @override
+  Future<List<XFile>> thumbnailFiles({
+    required List<String> videos,
+    required Map<String, String>? headers,
+    required String? thumbnailPath,
+    required ImageFormat imageFormat,
+    required int maxHeight,
+    required int maxWidth,
+    required int timeMs,
+    required int quality,
+  }) async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final results = <XFile>[];
+
+      for (final video in videos) {
+        results.add(
+          await thumbnailFile(
+            video: video,
+            headers: headers,
+            thumbnailPath: thumbnailPath,
+            imageFormat: imageFormat,
+            maxHeight: maxHeight,
+            maxWidth: maxWidth,
+            timeMs: timeMs,
+            quality: quality,
+          ),
+        );
+      }
+
+      return results;
+    }
+
+    final (completer, callId) = _createCompleterAndCallId<List<XFile>>();
+
+    final reqMap = <String, dynamic>{
+      'callId': callId,
+      'videos': videos,
+      'headers': headers,
+      'path': thumbnailPath,
+      'format': imageFormat.index,
+      'maxh': maxHeight,
+      'maxw': maxWidth,
+      'timeMs': timeMs,
+      'quality': quality
+    };
+
+    final result = await methodChannel.invokeMethod('files', reqMap);
+
+    if (result != true) {
+      _resolveFuture(callId, result);
+    }
+
+    return completer.future;
   }
 
   @override
