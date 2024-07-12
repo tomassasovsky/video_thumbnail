@@ -144,7 +144,9 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
 
         for (final String video: videos){
             try {
-                results.add(buildThumbnailFile(video, headers, path, format, maxh, maxw, timeMs, quality));
+                if(new File(video).exists()) {
+                    results.add(buildThumbnailFile(video, headers, path, format, maxh, maxw, timeMs, quality));
+                }
             } catch (IOException e) {
                 continue;
             }
@@ -291,13 +293,13 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("/")) {
-                if (targetW == 0 && targetH == 0) {
+                if (targetW == 0 || targetH == 0) {
                     targetW = 640;
                     targetH = 480;
                 }
                 bitmap = ThumbnailUtils.createVideoThumbnail(new File(video), new Size(targetW, targetH), null);
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("file://")) {
-                if (targetW == 0 && targetH == 0) {
+                if (targetW == 0 || targetH == 0) {
                     targetW = 640;
                     targetH = 480;
                 }
