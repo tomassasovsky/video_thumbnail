@@ -33,7 +33,7 @@ abstract class VideoThumbnailPlatform extends PlatformInterface {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
+    int? timeMs,
     required int quality,
   }) {
     throw UnimplementedError('thumbnailFiles() has not been implemented.');
@@ -46,7 +46,7 @@ abstract class VideoThumbnailPlatform extends PlatformInterface {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
+    int? timeMs,
     required int quality,
   }) {
     throw UnimplementedError('thumbnailFile() has not been implemented.');
@@ -58,7 +58,7 @@ abstract class VideoThumbnailPlatform extends PlatformInterface {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
+    int? timeMs,
     required int quality,
   }) {
     throw UnimplementedError('thumbnailData() has not been implemented.');

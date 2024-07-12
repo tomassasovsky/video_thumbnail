@@ -292,16 +292,28 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         MediaMetadataRetriever retriever = null;
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("/")) {
-                if (targetW == 0 || targetH == 0) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("/") && timeMs == -1) {
+                if (targetW == 0 && targetH == 0) {
                     targetW = 640;
                     targetH = 480;
                 }
+                else if (targetW == 0) {
+                    targetW = Math.round((float)(targetH * 16 / 9));
+                }
+                else if (targetH == 0) {
+                    targetH = Math.round((float)(targetW * 9 / 16));
+                }
                 bitmap = ThumbnailUtils.createVideoThumbnail(new File(video), new Size(targetW, targetH), null);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("file://")) {
-                if (targetW == 0 || targetH == 0) {
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && video.startsWith("file://") && timeMs == -1) {
+                if (targetW == 0 && targetH == 0) {
                     targetW = 640;
                     targetH = 480;
+                }
+                else if (targetW == 0) {
+                    targetW = Math.round((float)(targetH * 16 / 9));
+                }
+                else if (targetH == 0) {
+                    targetH = Math.round((float)(targetW * 9 / 16));
                 }
                 bitmap = ThumbnailUtils.createVideoThumbnail(new File(video.substring(7)), new Size(targetW, targetH), null);
             } else {

@@ -90,6 +90,11 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
     return (completer, callId);
   }
 
+  int _getTimeMsValue(int? timeMs) =>
+      defaultTargetPlatform == TargetPlatform.android
+          ? timeMs ?? -1
+          : timeMs ?? 0;
+
   @override
   Future<List<XFile>> thumbnailFiles({
     required List<String> videos,
@@ -98,7 +103,7 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
+    int? timeMs,
     required int quality,
   }) async {
     if (defaultTargetPlatform == TargetPlatform.iOS) {
@@ -132,7 +137,7 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
       'format': imageFormat.index,
       'maxh': maxHeight,
       'maxw': maxWidth,
-      'timeMs': timeMs,
+      'timeMs': _getTimeMsValue(timeMs),
       'quality': quality
     };
 
@@ -153,7 +158,7 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
+    int? timeMs,
     required int quality,
   }) async {
     final (completer, callId) = _createCompleterAndCallId<XFile>();
@@ -166,7 +171,7 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
       'format': imageFormat.index,
       'maxh': maxHeight,
       'maxw': maxWidth,
-      'timeMs': timeMs,
+      'timeMs': _getTimeMsValue(timeMs),
       'quality': quality
     };
 
@@ -186,7 +191,7 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
+    int? timeMs,
     required int quality,
   }) async {
     final (completer, callId) = _createCompleterAndCallId<Uint8List>();
@@ -198,7 +203,7 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
       'format': imageFormat.index,
       'maxh': maxHeight,
       'maxw': maxWidth,
-      'timeMs': timeMs,
+      'timeMs': _getTimeMsValue(timeMs),
       'quality': quality,
     };
 

@@ -48,7 +48,7 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
+    int? timeMs,
     required int quality,
   }) async {
     final blobs = <Blob>[];
@@ -61,7 +61,7 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
           imageFormat: imageFormat,
           maxHeight: maxHeight,
           maxWidth: maxWidth,
-          timeMs: timeMs,
+          timeMs: timeMs ?? 0,
           quality: quality,
         ),
       );
@@ -83,7 +83,7 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
+    int? timeMs,
     required int quality,
   }) async {
     final blob = await _createThumbnail(
@@ -92,7 +92,7 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
       imageFormat: imageFormat,
       maxHeight: maxHeight,
       maxWidth: maxWidth,
-      timeMs: timeMs,
+      timeMs: timeMs ?? 0,
       quality: quality,
     );
 
@@ -106,7 +106,7 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
+    int? timeMs,
     required int quality,
   }) async {
     final blob = await _createThumbnail(
@@ -115,7 +115,7 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
       imageFormat: imageFormat,
       maxHeight: maxHeight,
       maxWidth: maxWidth,
-      timeMs: timeMs,
+      timeMs: timeMs ?? 0,
       quality: quality,
     );
     final path = Url.createObjectUrlFromBlob(blob);
@@ -132,8 +132,8 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
     required ImageFormat imageFormat,
     required int maxHeight,
     required int maxWidth,
-    required int timeMs,
     required int quality,
+    int timeMs = 0,
   }) async {
     final completer = Completer<Blob>();
 

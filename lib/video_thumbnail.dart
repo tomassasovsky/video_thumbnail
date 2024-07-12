@@ -30,7 +30,7 @@ class VideoThumbnail {
     ImageFormat imageFormat = ImageFormat.PNG,
     int maxHeight = 0,
     int maxWidth = 0,
-    int timeMs = 0,
+    int? timeMs,
     int quality = 10,
   }) async {
     if (videos.isEmpty) return [];
@@ -59,7 +59,7 @@ class VideoThumbnail {
     ImageFormat imageFormat = ImageFormat.PNG,
     int maxHeight = 0,
     int maxWidth = 0,
-    int timeMs = 0,
+    int? timeMs,
     int quality = 10,
   }) async {
     assert(video.isNotEmpty);
@@ -86,7 +86,7 @@ class VideoThumbnail {
     ImageFormat imageFormat = ImageFormat.PNG,
     int maxHeight = 0,
     int maxWidth = 0,
-    int timeMs = 0,
+    int? timeMs,
     int quality = 10,
   }) async {
     assert(video.isNotEmpty);
