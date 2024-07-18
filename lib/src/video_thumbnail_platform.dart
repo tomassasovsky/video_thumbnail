@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:cross_file/cross_file.dart';
-import 'package:get_thumbnail_video/src/image_format.dart';
-import 'package:get_thumbnail_video/src/video_thumbnail_method_channel.dart';
+import 'package:thumbnail_video/src/image_format.dart';
+import 'package:thumbnail_video/src/video_thumbnail_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 abstract class VideoThumbnailPlatform extends PlatformInterface {
