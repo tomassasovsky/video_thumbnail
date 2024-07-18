@@ -5,8 +5,8 @@ import 'dart:math' as math;
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'package:thumbnail_video/src/image_format.dart';
-import 'package:thumbnail_video/src/video_thumbnail_platform.dart';
+import 'package:video_thumbnail/src/image_format.dart';
+import 'package:video_thumbnail/src/video_thumbnail_platform.dart';
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
