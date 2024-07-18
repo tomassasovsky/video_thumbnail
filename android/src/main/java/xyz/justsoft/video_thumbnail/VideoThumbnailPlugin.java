@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,15 +15,12 @@ import androidx.annotation.NonNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -318,13 +316,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
                 bitmap = ThumbnailUtils.createVideoThumbnail(new File(video.substring(7)), new Size(targetW, targetH), null);
             } else {
                 retriever = new MediaMetadataRetriever();
-                if (video.startsWith("/")) {
-                    setDataSource(video, retriever);
-                } else if (video.startsWith("file://")) {
-                    setDataSource(video.substring(7), retriever);
-                } else {
-                    retriever.setDataSource(video, (headers != null) ? headers : new HashMap<String, String>());
-                }
+                setDataSource(context, video, retriever);
 
                 if (targetH != 0 || targetW != 0) {
                     if (Build.VERSION.SDK_INT >= 27 && targetH != 0 && targetW != 0) {
@@ -362,10 +354,8 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         return bitmap;
     }
 
-    private static void setDataSource(String video, final MediaMetadataRetriever retriever) throws IOException {
-        File videoFile = new File(video);
-        FileInputStream inputStream = new FileInputStream(videoFile.getAbsolutePath());
-        retriever.setDataSource(inputStream.getFD());
-        inputStream.close();
+    private static void setDataSource(Context context, String video, final MediaMetadataRetriever retriever) throws IOException {
+        final Uri uri = Uri.parse(video);
+        retriever.setDataSource(context, uri);
     }
 }
