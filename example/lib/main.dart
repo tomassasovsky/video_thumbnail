@@ -341,29 +341,29 @@ class _DemoHomeState extends State<DemoHome> {
       appBar: AppBar(
         title: const Text('Thumbnail Plugin example'),
       ),
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(2, 10, 2, 8),
-            child: TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                filled: true,
-                isDense: true,
-                labelText: 'Video URI',
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(2, 10, 2, 8),
+              child: TextField(
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  isDense: true,
+                  labelText: 'Video URI',
+                ),
+                maxLines: null,
+                controller: _video,
+                focusNode: _editNode,
+                keyboardType: TextInputType.url,
+                textInputAction: TextInputAction.done,
+                onEditingComplete: _editNode.unfocus,
               ),
-              maxLines: null,
-              controller: _video,
-              focusNode: _editNode,
-              keyboardType: TextInputType.url,
-              textInputAction: TextInputAction.done,
-              onEditingComplete: _editNode.unfocus,
             ),
-          ),
-          for (var i in settings) i,
-          Expanded(
-            child: Container(
+            for (var i in settings) i,
+            Container(
               color: Colors.grey[300],
               child: ListView(
                 shrinkWrap: true,
@@ -372,8 +372,8 @@ class _DemoHomeState extends State<DemoHome> {
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,

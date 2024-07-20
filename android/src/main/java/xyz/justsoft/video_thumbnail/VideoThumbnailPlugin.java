@@ -316,7 +316,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
                 bitmap = ThumbnailUtils.createVideoThumbnail(new File(video.substring(7)), new Size(targetW, targetH), null);
             } else {
                 retriever = new MediaMetadataRetriever();
-                setDataSource(context, video, retriever);
+                setDataSource(context, video, retriever, headers);
 
                 if (targetH != 0 || targetW != 0) {
                     if (Build.VERSION.SDK_INT >= 27 && targetH != 0 && targetW != 0) {
@@ -354,8 +354,23 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         return bitmap;
     }
 
-    private static void setDataSource(Context context, String video, final MediaMetadataRetriever retriever) throws IOException {
-        final Uri uri = Uri.parse(video);
-        retriever.setDataSource(context, uri);
+    private static void setDataSource(
+            Context context,
+            String video,
+            final MediaMetadataRetriever retriever,
+            HashMap<String, String> headers
+    ) throws IOException {
+        if (video.startsWith("/")) {
+            retriever.setDataSource(video);
+        } else if (video.startsWith("file://")) {
+            retriever.setDataSource(video.substring(7));
+        } else if (video.startsWith("content://")) {
+            retriever.setDataSource(context, Uri.parse(video));
+        } else if (video.startsWith("http://") || video.startsWith("https://")) {
+            retriever.setDataSource(video, headers);
+        } else {
+            final Uri uri = Uri.parse(video);
+            retriever.setDataSource(context, uri);
+        }
     }
 }

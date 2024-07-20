@@ -397,13 +397,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.0"
-  video_thumbnail:
-    dependency: "direct main"
-    description:
-      path: ".."
-      relative: true
-    source: path
-    version: "0.6.2"
   typed_data:
     dependency: transitive
     description:
@@ -420,6 +413,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  video_thumbnail:
+    dependency: "direct main"
+    description:
+      path: ".."
+      relative: true
+    source: path
+    version: "0.6.2"
   vm_service:
     dependency: transitive
     description:
