@@ -76,7 +76,13 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
     if (value is Exception) {
       _futures[callId]?.completeError(value);
     } else {
-      _futures[callId]?.complete(value);
+      if (value is XFile) {
+        _futures[callId]?.complete(value);
+      } else if (value is String) {
+        _futures[callId]?.complete(XFile(value));
+      } else {
+        _futures[callId]?.complete(value);
+      }
     }
     _futures.remove(callId);
   }
