@@ -367,7 +367,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
         } else if (video.startsWith("content://")) {
             retriever.setDataSource(context, Uri.parse(video));
         } else if (video.startsWith("http://") || video.startsWith("https://")) {
-            retriever.setDataSource(video, headers);
+            retriever.setDataSource(video, (headers != null) ? headers : new HashMap<String, String>());
         } else {
             final Uri uri = Uri.parse(video);
             retriever.setDataSource(context, uri);
